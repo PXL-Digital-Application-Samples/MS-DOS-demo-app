@@ -1,0 +1,19 @@
+# Temporary files and working directories
+TEMP/*
+!TEMP/.gitkeep
+*.tmp
+*.temp
+
+# DOS-specific temporary files  
+*.TXT
+REQ_*.TXT
+
+# Development artifacts
+.vscode/
+*.log
+*.bak
+*.old
+
+# OS files
+Thumbs.db
+Desktop.ini
