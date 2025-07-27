@@ -1,0 +1,41 @@
+#!/bin/sh
+echo "Content-Type: application/json"
+echo ""
+
+cd ..
+
+# Get user ID from path
+USER_ID=$(echo "$PATH_INFO" | sed 's|^/||')
+
+TEMP_RESPONSE="TEMP/cgi_response.tmp"
+TEMP_INPUT="TEMP/cgi_input.tmp"
+
+# Handle different HTTP methods
+case "$REQUEST_METHOD" in
+    GET)
+        # Call the DOS handler for GET
+        cmd /c "HANDLERS\\GETUSER.BAT $USER_ID $TEMP_RESPONSE"
+        ;;
+    PUT)
+        # Save request body to temp file for PUT
+        cat > "$TEMP_INPUT"
+        cmd /c "HANDLERS\\UPDTUSER.BAT $USER_ID $TEMP_INPUT $TEMP_RESPONSE"
+        rm -f "$TEMP_INPUT"
+        ;;
+    DELETE)
+        # Call the DOS handler for DELETE
+        cmd /c "HANDLERS\\DELUSER.BAT $USER_ID $TEMP_RESPONSE"
+        ;;
+    *)
+        echo '{"error": "Method not allowed"}'
+        exit 1
+        ;;
+esac
+
+# Extract JSON body
+if [ -f "$TEMP_RESPONSE" ]; then
+    tail -n +6 "$TEMP_RESPONSE"
+    rm -f "$TEMP_RESPONSE"
+else
+    echo '{"error": "Handler failed"}'
+fi

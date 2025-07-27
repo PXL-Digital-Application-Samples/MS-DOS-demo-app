@@ -1,10 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Flask User Management API - DOS Batch Implementation
-:: Main server using netcat (nc.exe)
+:: DOS REST API Server - Using busybox httpd with CGI
+:: Serves DOS batch API handlers through CGI bridge
 
-set PORT=5000
+set PORT=9000
 set DATA_DIR=DATA
 set TEMP_DIR=TEMP
 
@@ -15,40 +15,21 @@ if not exist %TEMP_DIR% mkdir %TEMP_DIR%
 :: Initialize database with seed data
 call INIT_DB.BAT
 
-echo Flask User Management API (Batch Version)
-echo =========================================
-echo Server starting on port %PORT%...
+echo DOS REST API Server
+echo ===================
+echo Starting busybox httpd server on port %PORT%...
 echo.
 echo Available endpoints:
-echo   GET    /users      - List all users
-echo   GET    /users/{id} - Get user by ID
-echo   POST   /users      - Create new user
-echo   PUT    /users/{id} - Update user
-echo   DELETE /users/{id} - Delete user
+echo   GET    /cgi-bin/users      - List all users
+echo   GET    /cgi-bin/user/{id}  - Get user by ID
+echo   POST   /cgi-bin/users      - Create new user
+echo   PUT    /cgi-bin/user/{id}  - Update user
+echo   DELETE /cgi-bin/user/{id}  - Delete user
 echo.
-echo Press Ctrl+C to stop server
-echo =========================================
+echo Server will run until stopped with Ctrl+C
+echo Test with: curl http://localhost:%PORT%/cgi-bin/users
+echo ===================
 
-:server_loop
-:: HTTP server using busybox nc - DOS compatible approach
-echo.
-echo Waiting for request on port %PORT%...
-
-:: Create temp files
-set REQUEST_FILE=%TEMP_DIR%\REQ_%random%.TXT
-set RESPONSE_FILE=%TEMP_DIR%\RSP_%random%.TXT
-
-:: Use mTCP nc for DOS networking
-nc -l -p %PORT% > %REQUEST_FILE%
-
-:: Process the request
-call PROCESS.BAT %REQUEST_FILE% %RESPONSE_FILE%
-
-:: Send the response back
-type %RESPONSE_FILE% | nc -l -p %PORT%
-
-:: Clean up
-del %REQUEST_FILE% 2>nul
-del %RESPONSE_FILE% 2>nul
-
-goto server_loop
+:: Start busybox httpd with CGI support
+echo Starting server...
+busybox httpd -f -p %PORT% -c httpd.conf

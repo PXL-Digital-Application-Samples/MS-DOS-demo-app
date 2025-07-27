@@ -1,0 +1,37 @@
+#!/bin/sh
+echo "Content-Type: application/json"
+echo ""
+
+# Change to parent directory
+cd ..
+
+# Create temporary files
+TEMP_RESPONSE="TEMP/cgi_response.tmp"
+TEMP_INPUT="TEMP/cgi_input.tmp"
+
+# Handle different HTTP methods
+case "$REQUEST_METHOD" in
+    GET)
+        # Call the DOS handler for GET
+        cmd /c "HANDLERS\\GETUSERS.BAT $TEMP_RESPONSE"
+        ;;
+    POST)
+        # Save request body to temp file for POST
+        cat > "$TEMP_INPUT"
+        cmd /c "HANDLERS\\CREATUSR.BAT $TEMP_INPUT $TEMP_RESPONSE"
+        rm -f "$TEMP_INPUT"
+        ;;
+    *)
+        echo '{"error": "Method not allowed"}'
+        exit 1
+        ;;
+esac
+
+# Extract just the JSON body (skip HTTP headers)
+if [ -f "$TEMP_RESPONSE" ]; then
+    # Skip HTTP headers and output just the JSON
+    tail -n +6 "$TEMP_RESPONSE"
+    rm -f "$TEMP_RESPONSE"
+else
+    echo '{"error": "Handler failed"}'
+fi
