@@ -21,12 +21,17 @@ FEATURES
 ARCHITECTURE
 ============
 
-The server consists of modular components:
+The server uses a hybrid Unix/DOS architecture:
 
 - SERVER.BAT - HTTP server using busybox httpd
-- HANDLERS/*.BAT - Individual endpoint implementations
-- DATA/*.TXT - JSON user database files
-- cgi-bin/* - CGI bridge scripts
+- HANDLERS/*.BAT - DOS batch files implementing actual API logic
+- DATA/*.TXT - JSON user database files  
+- cgi-bin/* - Unix shell scripts (busybox sh) that bridge to DOS batch files
+
+KEY INSIGHT: Busybox on Windows includes its own Unix shell environment. The CGI 
+scripts run in busybox's built-in sh/bash, but call Windows DOS batch files via 
+'cmd /c' to perform the actual API operations. This creates a unique hybrid where 
+Unix CGI handling meets pure DOS batch processing.
 
 
 QUICK START
@@ -115,7 +120,10 @@ REQUIREMENTS
 ============
 
 - DOS/Windows command prompt (cmd.exe)
-- busybox httpd for web server functionality
+- busybox for Windows (includes httpd server and Unix shell)
+  - Provides busybox httpd for HTTP server functionality
+  - Includes built-in sh/bash shell for CGI script execution
+  - Available via Scoop: scoop install busybox
 
 
 LIMITATIONS
